@@ -1,4 +1,6 @@
 const express = require('express');
+const {celebrate, Segments, Joi} = require('celebrate');
+
 const OngsController = require('./controllers/OngsController');
 const IncidentsController = require('./controllers/IncidentsController');
 const ProfileController = require('./controllers/ProfileController');
@@ -6,27 +8,40 @@ const SessionController = require('./controllers/SessionController');
 
 const routes = express.Router();
 
-// routes.options("/*", function (req, res, next) {
-//     res.header('Access-Control-Allow-Origin', '*');
-//     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-//     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
-//     res.sendStatus(200);
-// });
-//
-// routes.all('*', function (req, res, next) {
-//     res.header("Access-Control-Allow-Origin", "*");
-//     next();
-// });
-
 routes.post('/sessions', SessionController.store);
 
 routes.get('/ongs', OngsController.index);
-routes.post('/ongs', OngsController.store);
+routes.post('/ongs', celebrate({
+    [Segments.BODY]: Joi.object().keys({
+        nome: Joi.string().required(),
+        email: Joi.string().required().email(),
+        whatsapp: Joi.string().required().min(10).max(11),
+        cidade: Joi.string().required(),
+        uf: Joi.string().required().length(2),
 
-routes.get('/perfil', ProfileController.index);
+    })
+}), OngsController.store);
 
-routes.get('/incidente', IncidentsController.index);
+routes.get('/perfil', celebrate({
+    [Segments.HEADERS]: Joi.object({
+        authorization: Joi.string().required()
+    }).unknown()
+}), ProfileController.index);
+
+routes.get('/incidente', celebrate({
+    [Segments.QUERY]: Joi.object().keys({
+        page: Joi.number()
+    }),
+}), IncidentsController.index);
 routes.post('/incidente', IncidentsController.store);
-routes.delete('/incidente/:id', IncidentsController.delete);
+
+routes.delete('/incidente/:id', celebrate({
+    [Segments.PARAMS]: Joi.object().keys({
+        id: Joi.number().required(),
+    }),
+    [Segments.HEADERS]: Joi.object({
+        authorization: Joi.string().required()
+    }).unknown()
+}), IncidentsController.delete);
 
 module.exports = routes;
