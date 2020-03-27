@@ -15,6 +15,19 @@ module.exports = {
         }
     },
 
+    test: {
+        client: 'mysql',
+        connection: {
+            user: 'root',
+            password: '123',
+            host: 'mysql.nano.docker',
+            database: 'semanaomnistack11_teste'
+        },
+        migrations: {
+            directory: './src/database/migrations'
+        }
+    },
+
     staging: {
         client: 'mysql',
         connection: {
